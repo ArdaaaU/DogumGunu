@@ -14,55 +14,58 @@
 
         body {
             background: linear-gradient(135deg, #e6b3ff 0%, #ffe082 100%);
-            height: 100vh;
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            overflow: hidden;
+            padding: 10px;
+            overflow-x: hidden;
         }
 
         .container {
-            width: 90%;
+            width: 100%;
             max-width: 1100px;
-            height: 80vh;
+            min-height: 80vh;
             background: #fff;
             border-radius: 25px;
             box-shadow: 0 20px 50px rgba(0,0,0,0.2);
             display: flex;
+            flex-direction: row; /* Yan yana dizilim */
             overflow: hidden;
             z-index: 10;
         }
 
-        /* SOL PANEL DÜZELTME */
+        /* SOL PANEL: TOFAŞ */
         .left-panel {
             flex: 1.2;
-            height: 100%;
-            background: #f0f0f0; /* Resim gelmezse arka plan rengi */
+            background: #f0f0f0;
             position: relative;
         }
 
         .left-panel img {
             width: 100%;
             height: 100%;
-            object-fit: cover; /* Resmi paneli dolduracak şekilde ayarlar */
+            object-fit: cover;
             display: block;
         }
 
-        /* SAĞ PANEL */
+        /* SAĞ PANEL: PASTA VE ETKİLEŞİM */
         .right-panel {
             flex: 1;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 20px;
+            padding: 30px;
             border-left: 1px solid #eee;
+            background: #fff;
         }
 
         .cake-container {
             text-align: center;
             cursor: pointer;
             transition: transform 0.3s ease;
+            width: 100%;
         }
 
         .cake-container:hover {
@@ -70,8 +73,9 @@
         }
 
         .cake-image {
-            width: 500px;
-            max-width: 100%;
+            width: 100%;
+            max-width: 380px; /* Masaüstü boyutu */
+            height: auto;
             border-radius: 15px;
             box-shadow: 0 10px 20px rgba(0,0,0,0.1);
         }
@@ -82,12 +86,13 @@
             font-weight: bold;
             font-size: 1.3rem;
             animation: bounce 2s infinite;
+            text-align: center;
         }
 
         /* GERİ SAYIM VE MESAJ */
         .countdown {
             display: none;
-            font-size: 120px;
+            font-size: 100px; /* Mobilde biraz küçültüldü */
             color: #d84389;
             font-weight: 900;
         }
@@ -95,19 +100,20 @@
         .message {
             display: none;
             text-align: center;
+            padding: 10px;
         }
 
         .message h1 {
             color: #d84389;
-            font-size: 3rem;
+            font-size: 2.5rem; /* Mobilde daha iyi görünür */
             margin-bottom: 10px;
         }
 
         /* KONFETİ */
         .confetti {
             position: absolute;
-            width: 10px;
-            height: 10px;
+            width: 8px;
+            height: 8px;
             top: -10px;
             z-index: 100;
             animation: fall linear forwards;
@@ -122,10 +128,39 @@
             50% { transform: translateY(-10px); }
         }
 
-        @media (max-width: 800px) {
-            .container { flex-direction: column; height: 90vh; }
-            .left-panel { flex: 1; }
-            .right-panel { flex: 1.5; }
+        /* 📱 MOBİL UYUMLULUK AYARLARI */
+        @media (max-width: 850px) {
+            .container {
+                flex-direction: column; /* Alt alta diz */
+                height: auto;
+                min-height: 90vh;
+                margin: 10px;
+            }
+
+            .left-panel {
+                flex: none;
+                height: 300px; /* Mobilde görselin yüksekliği */
+                width: 100%;
+            }
+
+            .right-panel {
+                flex: 1;
+                border-left: none;
+                border-top: 1px solid #eee;
+                padding: 40px 20px;
+            }
+
+            .cake-image {
+                max-width: 280px; /* Mobilde pastayı biraz küçült */
+            }
+
+            .message h1 {
+                font-size: 2rem;
+            }
+
+            .countdown {
+                font-size: 80px;
+            }
         }
     </style>
 </head>
@@ -177,15 +212,16 @@
 
         function fireConfetti() {
             const colors = ['#d84389', '#f2d74e', '#95c11f', '#4e9be6', '#9b59b6'];
-            for (let i = 0; i < 80; i++) {
+            // Mobilde çok fazla element kasmaması için sayıyı 60'a çektim
+            for (let i = 0; i < 60; i++) {
                 const confetti = document.createElement('div');
                 confetti.classList.add('confetti');
                 confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
                 confetti.style.left = Math.random() * 100 + '%';
                 confetti.style.animationDuration = (Math.random() * 3 + 2) + 's';
-                confetti.style.animationDelay = Math.random() * 2 + 's';
+                confetti.style.animationDelay = Math.random() * 1 + 's';
                 document.body.appendChild(confetti);
-                setTimeout(() => confetti.remove(), 6000);
+                setTimeout(() => confetti.remove(), 5000);
             }
         }
     </script>
