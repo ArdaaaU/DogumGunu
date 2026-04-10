@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Beni Seviyor musun? - Hikaye Modu</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&family=Cinzel:wght@700&display=swap" rel="stylesheet">
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  
+  <style>
+    /* RESET & BASE */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body, html { 
+      width: 100%; height: 100%; overflow: hidden; 
+      background: #000; font-family: 'Outfit', sans-serif; 
+      color: #fff;
+    }
+    
+    .stage {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      display: none; /* Controlled by JS via GSAP */
+      flex-direction: column; align-items: center; justify-content: center;
+    }
+
+    .active-stage { display: flex; }
+
+    /* CORE COMPONENTS */
+    .title {
+      font-size: 4rem; font-weight: 900; margin-bottom: 3rem; text-align: center;
+      text-shadow: 0 0 15px rgba(255,255,255,0.8), 0 0 30px rgba(255,255,255,0.4);
+      padding: 0 20px; z-index: 10;
+    }
+    
+    .btn-container { display: flex; gap: 3rem; position: relative; z-index: 10; }
+    
+    .btn {
+      padding: 1.2rem 3.5rem; font-size: 1.8rem; font-weight: 700; font-family: inherit;
+      border: none; border-radius: 50px; cursor: pointer;
+      transition: box-shadow 0.3s ease;
+    }
+    
+    .btn-yes {
+      background: #0a0a0a; color: #fff; border: 3px solid #00ffaa;
+      box-shadow: 0 0 20px rgba(0, 255, 170, 0.5), inset 0 0 15px rgba(0, 255, 170, 0.2);
+    }
+    .btn-yes:hover { box-shadow: 0 0 40px rgba(0, 255, 170, 0.8), inset 0 0 25px rgba(0, 255, 170, 0.5); }
+    
+    .btn-no {
+      background: #0a0a0a; color: #fff; border: 3px solid #ff0055;
+      box-shadow: 0 0 20px rgba(255, 0, 85, 0.5), inset 0 0 15px rgba(255, 0, 85, 0.2);
+    }
+
+    /* STAGE 1 & 2 SPECIFICS */
+    #s1-no { position: relative; } /* JS makes it absolute running */
+
+    /* COUNTDOWN OVERLAY */
+    #countdown-layer {
+      position: absolute; top:0; left:0; width:100%; height:100%;
+      background: rgba(0,0,0,0.9); z-index: 100;
+      display: none; align-items: center; justify-content: center;
+    }
+    #counter-text {
+      font-size: 15rem; font-weight: 900; color: #00ffaa;
+      text-shadow: 0 0 50px #00ffaa; opacity: 0;
+    }
+
+    /* STAGE 3: CHOCOLATE CAKE & CAT */
+    #stage-3 {
+      background: linear-gradient(135deg, #2b1008 0%, #4a2111 50%, #1a0b06 100%);
+    }
+    .celebration-text {
+      position: absolute; top: 10%; font-size: 4rem; font-weight: 900; color: #FFF;
+      text-align: center; text-shadow: 0 0 20px #FFD700, 0 0 40px #FFA500;
+      opacity: 0; z-index: 50; line-height: 1.1;
+    }
+    .gift-btn {
+      position: absolute; bottom: 10%; opacity: 0; pointer-events: none;
+      background: #0a0a0a; color: #FFD700; border: 3px solid #FFD700; border-radius: 50px;
+      padding: 1rem 3rem; font-size: 1.5rem; font-weight: 700; cursor: pointer; z-index: 50;
+      box-shadow: 0 0 20px rgba(255,215,0,0.5);
+    }
+
+    .cake-env { position: relative; width: 340px; height: 350px; transform: translateY(60px); z-index: 5; }
+    .layer { position: absolute; opacity: 0; }
+    
+    /* Chocolate Cake Styles */
+    .plate {
+      width: 340px; height: 40px; background: #e0e5ec; border-radius: 50%;
+      bottom: -20px; left: 0px; box-shadow: 0 15px 25px rgba(0,0,0,0.6);
+    }
+    .cake-base {
+      width: 280px; height: 100px; background: linear-gradient(to right, #4a2c11, #301a07);
+      border-radius: 10px 10px 20px 20px; bottom: 10px; left: 30px;
+      box-shadow: inset -15px 0 25px rgba(0,0,0,0.3);
+    }
+    .cake-base::before {
+      content: ''; position: absolute; top: -10px; left: 0; width: 100%; height: 20px;
+      background: #4a2c11; border-radius: 50%;
+    }
+    .ganache {
+      width: 290px; height: 35px; background: #241103; border-radius: 20px;
+      bottom: 105px; left: 25px; box-shadow: 0 8px 15px rgba(0,0,0,0.4); z-index: 2;
+    }
+    .ganache::after { /* Drips */
+      content: ''; position: absolute; top: 10px; left: 30px; width: 15px; height: 40px;
+      background: #241103; border-radius: 50%;
+      box-shadow: 50px 10px 0 0px #241103, 130px 15px 0 2px #241103, 190px 5px 0 0px #241103;
+    }
+    .cake-top {
+      width: 220px; height: 85px; background: linear-gradient(to right, #5c3716, #42250d);
+      border-radius: 10px 10px 20px 20px; bottom: 135px; left: 60px; z-index: 1;
+    }
+    .cake-top::before {
+      content: ''; position: absolute; top: -10px; left: 0; width: 100%; height: 20px;
+      background: #5c3716; border-radius: 50%;
+    }
+    
+    .candle { width: 14px; height: 60px; background: repeating-linear-gradient(45deg, #fff, #fff 5px, #ffde00 5px, #ffde00 10px); bottom: 215px; left: 163px; border-radius: 3px; z-index: 3; }
+    .flame { width: 22px; height: 35px; background: radial-gradient(ellipse at bottom, #fff 20%, #ff8800 60%, transparent 100%); bottom: 275px; left: 159px; border-radius: 50% 50% 20% 20%; transform-origin: bottom center; animation: flicker 0.15s infinite alternate; opacity: 0; z-index: 4; box-shadow: 0 0 20px #ffea00; }
+
+    /* The Cake Slice (Secret element for cat to slice off) */
+    .cake-slice {
+      position: absolute; bottom: 10px; left: 30px; width: 80px; height: 100px;
+      background: linear-gradient(to right, #4a2c11, #301a07); border-radius: 10px 0 0 20px;
+      opacity: 0; z-index: 15; /* Same visually as left part of cake */
+    }
+
+    @keyframes flicker {
+      0% { transform: scale(1) rotate(-3deg); }
+      100% { transform: scale(1.1) rotate(3deg); }
+    }
+
+    /* Cat Chef */
+    #cat-wrapper {
+      position: absolute; right: -300px; bottom: 50px; width: 200px; height: 200px;
+      z-index: 20; display: flex; align-items: flex-end; justify-content: flex-start;
+    }
+    #cat-paw {
+      transform-origin: top right;
+      transform: rotate(0deg);
+    }
+
+    /* STAGE 4: DESTINY DOORS */
+    #stage-4 { background: #05020a; }
+    .door-arena {
+      display: flex; gap: 40px; perspective: 1000px; margin-top: 50px;
+    }
+    .door-frame {
+      width: 150px; height: 300px; border: 4px solid #8A2BE2; border-radius: 10px 10px 0 0;
+      position: relative; box-shadow: 0 0 30px rgba(138,43,226,0.3);
+      cursor: pointer; background: #fff;
+    }
+    .door {
+      width: 100%; height: 100%; background: #1a0b2e; border: 2px solid #3c156b;
+      border-radius: 6px 6px 0 0; position: absolute; top:0; left:0;
+      transform-origin: left; transition: transform 0.8s ease-in-out;
+      display: flex; align-items: center; justify-content: right; padding-right: 15px;
+    }
+    .door::after { /* Doorknob */
+      content: ''; width: 15px; height: 15px; background: #FFD700; border-radius: 50%;
+      box-shadow: 0 0 10px #FFD700;
+    }
+    .door-frame:hover .door { box-shadow: inset 0 0 20px rgba(138,43,226,0.5); }
+    
+    /* Emotional Truth */
+    .truth-text {
+      position: absolute; top: 20%; font-size: 3rem; font-family: 'Cinzel', serif;
+      color: #FFF; text-shadow: 0 0 20px #FFD700; text-align: center;
+      opacity: 0; pointer-events: none; z-index: 100;
+    }
+
+    /* STAGE 5: LETTER */
+    #stage-5 { background: #000; }
+    .crawl-container {
+      width: 80%; height: 80vh; perspective: 60vh; display: flex; justify-content: center;
+      overflow: hidden; position: relative;
+    }
+    .crawl-text {
+      position: absolute; bottom: -50%; width: 100%;
+      font-size: 2rem; color: #FFD700; text-align: center;
+      line-height: 1.8; font-family: 'Cinzel', serif;
+      text-shadow: 0 0 10px rgba(255,215,0,0.5);
+      transform: rotateX(25deg);
+    }
+
+    /* RESPONSIVENESS */
+    @media (max-width: 768px) {
+      .title { font-size: 2.5rem; } .btn { padding: 1rem 2rem; font-size: 1.2rem; }
+      #counter-text { font-size: 8rem; }
+      .cake-env { transform: scale(0.65) translateY(20px); }
+      .celebration-text { font-size: 2.5rem; }
+      .door-frame { width: 100px; height: 200px; }
+      .truth-text { font-size: 2rem; }
+      .crawl-text { font-size: 1.3rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- STAGE 1: FIRST QUESTION -->
+  <div id="stage-1" class="stage active-stage">
+    <div class="title">Beni seviyor musun?</div>
+    <div class="btn-container">
+      <button class="btn btn-yes" id="s1-yes">Evet</button>
+      <button class="btn btn-no" id="s1-no">Hayır</button>
+    </div>
+  </div>
+
+  <!-- STAGE 2: PRANK UI -->
+  <div id="stage-2" class="stage">
+    <div class="title" style="color: #ffaa00; text-shadow: 0 0 20px #ffaa00;">Emin misin? 😏</div>
+    <div class="btn-container" style="align-items: center;">
+      <button class="btn btn-yes" id="s2-yes">Evet</button>
+      <button class="btn btn-no" id="s2-no">Hayır</button>
+    </div>
+  </div>
+
+  <!-- COUNTDOWN -->
+  <div id="countdown-layer"><div id="counter-text">3</div></div>
+
+  <!-- STAGE 3: CHOCOLATE CAKE & CAT -->
+  <div id="stage-3" class="stage" style="clip-path: circle(0px at center);">
+    <div class="celebration-text" id="final-text">DOĞUM GÜNÜN<br>KUTLU OLSUN!</div>
+    
+    <div class="cake-env">
+      <div class="layer plate"></div>
+      <div class="layer ganache"></div>
+      <div class="layer cake-top"></div>
+      <div class="layer cake-base"></div>
+      <div class="cake-slice" id="the-slice"></div>
+      <div class="layer candle"></div>
+      <div class="layer flame" id="flame"></div>
+    </div>
+
+    <!-- Chef Cat SVG -->
+    <div id="cat-wrapper">
+      <svg width="250" height="250" viewBox="0 0 200 200">
+        <!-- Body -->
+        <ellipse cx="120" cy="140" rx="60" ry="70" fill="#fff" stroke="#333" stroke-width="4"/>
+        <!-- Head -->
+        <circle cx="100" cy="80" r="45" fill="#fff" stroke="#333" stroke-width="4"/>
+        <!-- Ears -->
+        <polygon points="65,50 45,10 90,40" fill="#fff" stroke="#333" stroke-width="4"/>
+        <polygon points="135,50 155,10 110,40" fill="#fff" stroke="#333" stroke-width="4"/>
+        <polygon points="65,50 50,20 85,42" fill="#ffb3c6"/>
+        <polygon points="135,50 150,20 115,42" fill="#ffb3c6"/>
+        <!-- Eyes -->
+        <circle cx="80" cy="75" r="5" fill="#000"/>
+        <circle cx="120" cy="75" r="5" fill="#000"/>
+        <!-- Chef Hat -->
+        <path d="M 60 40 Q 50 10 80 10 Q 100 -10 120 10 Q 150 10 140 40 Z" fill="#fff" stroke="#333" stroke-width="3"/>
+        <rect x="75" y="35" width="50" height="15" fill="#fff" stroke="#333" stroke-width="3"/>
+        <!-- Nose/Mouth -->
+        <ellipse cx="100" cy="90" rx="6" ry="4" fill="#ffb3c6"/>
+        <path d="M 100 95 Q 90 105 85 100" fill="none" stroke="#000" stroke-width="2"/>
+        <path d="M 100 95 Q 110 105 115 100" fill="none" stroke="#000" stroke-width="2"/>
+        <!-- Fixed Arm -->
+        <ellipse cx="160" cy="120" rx="15" ry="35" transform="rotate(-30 160 120)" fill="#fff" stroke="#333" stroke-width="4"/>
+        
+        <!-- Animated Arm & Knife -->
+        <g id="cat-paw">
+          <!-- Arm -->
+          <ellipse cx="60" cy="130" rx="15" ry="40" transform="rotate(40 60 130)" fill="#fff" stroke="#333" stroke-width="4"/>
+          <!-- Knife -->
+          <rect x="25" y="145" width="40" height="8" fill="#aaa" stroke="#555" stroke-width="2" transform="rotate(-20 25 145)"/>
+          <rect x="65" y="140" width="20" height="15" fill="#5c3716" transform="rotate(-20 65 140)"/>
+        </g>
+      </svg>
+    </div>
+    
+    <button class="gift-btn" id="gift-go-btn">Hediyeni Gör ✨</button>
+  </div>
+
+  <!-- STAGE 4: DESTINY DOORS -->
+  <div id="stage-4" class="stage">
+    <div class="title" style="margin-bottom: 20px;">Yolunu Seç</div>
+    <div class="door-arena">
+      <div class="door-frame"><div class="door doorClick"></div></div>
+      <div class="door-frame"><div class="door doorClick"></div></div>
+    </div>
+    <div class="truth-text" id="truth-msg">Tüm yollarım sana çıkıyor... ❤️</div>
+  </div>
+
+  <!-- STAGE 5: LETTER -->
+  <div id="stage-5" class="stage">
+    <div class="crawl-container">
+      <div class="crawl-text" id="letter-content">
+        Hayatıma girdiğin günden beri,<br>
+        Her günüm bir önceki günden daha anlamlı.<br><br>
+        Bazen inatçısın, bazen çocuk.<br>
+        Ama hep en kalbime dokunanımsın.<br><br>
+        İyi ki doğdun, iyi ki benimlesin.<br>
+        Birlikte daha nice gülüşlere...<br><br>
+        Seni Seviyorum.
+      </div>
+    </div>
+  </div>
+
+
+  <script>
+    // Variables
+    const s1Yes = document.getElementById("s1-yes");
+    const s1No = document.getElementById("s1-no");
+    let stage1Active = true;
+
+    // ----- STAGE 1: EVASION -----
+    setTimeout(() => {
+        const rect = s1No.getBoundingClientRect();
+        s1No.style.position = 'fixed';
+        s1No.style.left = rect.left + 'px';
+        s1No.style.top = rect.top + 'px';
+        s1No.style.margin = '0';
+    }, 100);
+
+    document.addEventListener("mousemove", (e) => {
+      if (!stage1Active) return;
+      const rect = s1No.getBoundingClientRect();
+      const btnCx = rect.left + rect.width / 2;
+      const btnCy = rect.top + rect.height / 2;
+      const dist = Math.hypot(e.clientX - btnCx, e.clientY - btnCy);
+      
+      if (dist < 180) {
+        const angle = Math.atan2(btnCy - e.clientY, btnCx - e.clientX);
+        const pushForce = 250 - dist; 
+        
+        let newX = btnCx + Math.cos(angle) * pushForce - rect.width / 2;
+        let newY = btnCy + Math.sin(angle) * pushForce - rect.height / 2;
+        
+        newX = Math.max(30, Math.min(window.innerWidth - rect.width - 30, newX));
+        newY = Math.max(30, Math.min(window.innerHeight - rect.height - 30, newY));
+        
+        gsap.to(s1No, { left: newX, top: newY, duration: 0.3, ease: "power2.out", overwrite: "auto"});
+      }
+    });
+
+    s1No.addEventListener("touchstart", (e) => {
+        if (!stage1Active) return;
+        e.preventDefault(); 
+        let newX = Math.random() * (window.innerWidth - s1No.offsetWidth - 60) + 30;
+        let newY = Math.random() * (window.innerHeight - s1No.offsetHeight - 60) + 30;
+        gsap.to(s1No, { left: newX, top: newY, duration: 0.2 });
+    }, {passive: false});
+
+
+    // ----- STAGE 2: PRANK UI -----
+    s1Yes.addEventListener("click", () => {
+      stage1Active = false;
+      document.getElementById("stage-1").classList.remove("active-stage");
+      document.getElementById("stage-2").classList.add("active-stage");
+    });
+
+    const s2Yes = document.getElementById("s2-yes");
+    const s2No = document.getElementById("s2-no");
+    let s2YesScale = 1;
+    let s2NoScale = 1;
+
+    s2No.addEventListener("click", () => {
+      s2YesScale += 0.3; // Grows 30% each time
+      s2NoScale -= 0.1; // Shrinks a bit
+      if(s2NoScale < 0.2) s2NoScale = 0.2;
+      
+      gsap.to(s2Yes, {scale: s2YesScale, duration: 0.4, ease: "back.out(1.7)"});
+      gsap.to(s2No, {
+        scale: s2NoScale, x: "+=10", yoyo: true, repeat: 3, duration: 0.05
+      });
+    });
+
+    // ----- STAGE 3: COUNTDOWN & CAKE -----
+    s2Yes.addEventListener("click", (e) => {
+      const clickX = e.clientX || window.innerWidth/2;
+      const clickY = e.clientY || window.innerHeight/2;
+      
+      // Countdown
+      const overlay = document.getElementById("countdown-layer");
+      const cText = document.getElementById("counter-text");
+      overlay.style.display = "flex";
+      
+      let count = 3;
+      cText.innerText = count;
+      
+      const tl = gsap.timeline();
+      
+      function tick() {
+        if(count > 0) {
+          cText.innerText = count;
+          tl.fromTo(cText, {scale: 0.5, opacity: 0}, {scale: 1.5, opacity: 1, duration: 0.5, ease: "back.out"})
+            .to(cText, {scale: 3, opacity: 0, duration: 0.5}, "+=0.2")
+            .call(() => { count--; tick(); });
+        } else {
+          // Launch Stage 3
+          overlay.style.display = "none";
+          document.getElementById("stage-2").classList.remove("active-stage");
+          const stage3 = document.getElementById("stage-3");
+          stage3.classList.add("active-stage");
+          
+          const maxRadius = Math.hypot(window.innerWidth, window.innerHeight);
+          gsap.set(stage3, { clipPath: `circle(0px at ${clickX}px ${clickY}px)` });
+          
+          gsap.to(stage3, {
+            clipPath: `circle(${maxRadius}px at ${clickX}px ${clickY}px)`,
+            duration: 1.5, ease: "power3.inOut",
+            onComplete: dropCake
+          });
+        }
+      }
+      tick();
+    });
+
+    function dropCake() {
+      const layers = [".plate", ".cake-base", ".ganache", ".cake-top", ".candle"];
+      gsap.set(layers, { y: -window.innerHeight, opacity: 1 });
+      
+      gsap.to(layers, {
+        y: 0, duration: 1.5, stagger: 0.25, ease: "bounce.out",
+        onComplete: enterCat
+      });
+    }
+
+    function enterCat() {
+      gsap.to("#flame", { opacity: 1, duration: 0.5 });
+      
+      gsap.set("#final-text", { scale: 0.2 });
+      gsap.to("#final-text", { opacity: 1, scale: 1, duration: 1.5, ease: "elastic.out(1, 0.3)"});
+      triggerConfetti();
+
+      // Cat walks in
+      const paw = document.getElementById("cat-paw");
+      const cat = document.getElementById("cat-wrapper");
+      
+      gsap.to(cat, {
+        right: { value: window.innerWidth/2 - 250, ease: "power2.out" }, 
+        duration: 2, 
+        delay: 1,
+        onComplete: () => {
+          // Slicing animation
+          gsap.set(".cake-slice", {opacity: 1}); // show dummy piece
+          gsap.timeline()
+            .to(paw, {rotation: -60, duration: 0.4, ease: "power1.in"}) // raises knife
+            .to(paw, {rotation: 20, duration: 0.2, ease: "power4.in"}) // slashes down
+            .to(paw, {rotation: 0, duration: 0.3}) // rests
+            .call(() => {
+              // Cake slice flies to screen
+              gsap.to(".cake-slice", {
+                x: -150, y: 150, scale: 4, opacity: 0,
+                duration: 1.5, ease: "power2.out", delay: 0.2
+              });
+              // Show gift button
+              const giftBtn = document.getElementById("gift-go-btn");
+              gsap.to(giftBtn, {opacity: 1, pointerEvents: "auto", y: -20, duration: 1, ease:"power2.out"});
+            });
+        }
+      });
+    }
+
+    // ----- CONFETTI LOGIC -----
+    function triggerConfetti() {
+      const p = confetti.create(null, { resize: true, useWorker: true });
+      const duration = 5000; const animationEnd = Date.now() + duration;
+      const int = setInterval(function() {
+        const timeLeft = animationEnd - Date.now();
+        if (timeLeft <= 0) return clearInterval(int);
+        p({ particleCount: 30, spread: 60, origin: { x: 0.2, y: 0.6 }, colors: ['#5c3716', '#FFD700', '#fff'] });
+        p({ particleCount: 30, spread: 60, origin: { x: 0.8, y: 0.6 }, colors: ['#5c3716', '#FFD700', '#fff'] });
+      }, 250);
+    }
+
+    // ----- STAGE 4: DOORS -----
+    document.getElementById("gift-go-btn").addEventListener("click", () => {
+      document.getElementById("stage-3").classList.remove("active-stage");
+      document.getElementById("stage-4").classList.add("active-stage");
+      gsap.from(".door-frame", {opacity: 0, scale: 0.5, stagger: 0.3, duration: 1});
+    });
+
+    const doors = document.querySelectorAll('.doorClick');
+    doors.forEach(door => {
+      door.addEventListener('click', function() {
+        // Open the clicked door
+        this.style.transform = 'rotateY(-105deg)';
+        
+        // Also open the other door just for aesthetic
+        doors.forEach(d => { if(d !== this) d.style.transform = 'rotateY(-105deg)'; });
+        
+        // Show truth text
+        gsap.to("#truth-msg", {opacity: 1, scale: 1.1, duration: 2, ease: "power2.out"});
+        
+        // Transition to Stage 5 automatically after reading
+        setTimeout(() => {
+           document.getElementById("stage-4").classList.remove("active-stage");
+           document.getElementById("stage-5").classList.add("active-stage");
+           startLetterCrawl();
+        }, 5000);
+      }, {once: true});
+    });
+
+    // ----- STAGE 5: LETTER CRAWL -----
+    function startLetterCrawl() {
+      const letter = document.getElementById("letter-content");
+      gsap.fromTo(letter, 
+        { y: window.innerHeight * 0.8 }, 
+        { y: -300, duration: 20, ease: "none" }
+      );
+    }
+  </script>
+</body>
+</html>
