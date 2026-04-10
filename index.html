@@ -177,15 +177,15 @@
     /* STAGE 5: LETTER */
     #stage-5 { background: #000; }
     .crawl-container {
-      width: 80%; height: 80vh; perspective: 60vh; display: flex; justify-content: center;
+      width: 90%; max-width: 900px; height: 80vh; display: flex; justify-content: center;
       overflow: hidden; position: relative;
     }
     .crawl-text {
       position: absolute; bottom: -50%; width: 100%;
-      font-size: 2rem; color: #FFD700; text-align: center;
+      font-size: 1.5rem; color: #FFD700; text-align: center;
       line-height: 1.8; font-family: 'Cinzel', serif;
       text-shadow: 0 0 10px rgba(255,215,0,0.5);
-      transform: rotateX(25deg);
+      word-wrap: break-word;
     }
 
     /* RESPONSIVENESS */
@@ -196,7 +196,7 @@
       .celebration-text { font-size: 2.5rem; }
       .door-frame { width: 100px; height: 200px; }
       .truth-text { font-size: 2rem; }
-      .crawl-text { font-size: 1.3rem; }
+      .crawl-text { font-size: 1.1rem; line-height: 1.6; }
     }
   </style>
 </head>
@@ -502,7 +502,7 @@
       const letter = document.getElementById("letter-content");
       gsap.fromTo(letter, 
         { y: window.innerHeight * 0.8 }, 
-        { y: -300, duration: 20, ease: "none" }
+        { y: -1000, duration: 30, ease: "none" }
       );
     }
   </script>
